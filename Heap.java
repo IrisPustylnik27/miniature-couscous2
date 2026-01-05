@@ -158,6 +158,7 @@ public class Heap
     public void successiveLinking(){
         HeapNode[] degreeTable = new HeapNode[this.numTrees()];
         HeapNode curr = this.start;
+
         do{
             int cr = curr.rank;
             while (degreeTable[cr] != null){
