@@ -13,7 +13,12 @@ public class Heap
     public HeapItem min;
     public HeapNode start;
     public int size;
-    public int numTrees;
+
+    private int numTrees;
+    private int numLinks;
+    private int numCuts;
+    private int numMarkedNodes;
+    private int numHeapify;
     
     /**
      *
@@ -28,6 +33,10 @@ public class Heap
         this.start = null;
         size = 0;
         numTrees = 0;
+        numLinks = 0;
+        numCuts = 0;
+        numMarkedNodes = 0;
+        numHeapify = 0;
     }
 
     /**
@@ -176,7 +185,7 @@ public class Heap
      */
     public int numMarkedNodes()
     {
-        return 46; // should be replaced by student code
+        return this.numMarkedNodes; // should be replaced by student code
     }
     
     
@@ -187,7 +196,7 @@ public class Heap
      */
     public int totalLinks()
     {
-        return 46; // should be replaced by student code
+        return this.numLinks; // should be replaced by student code
     }
     
     
@@ -198,7 +207,7 @@ public class Heap
      */
     public int totalCuts()
     {
-        return 46; // should be replaced by student code
+        return this.numCuts; // should be replaced by student code
     }
     
 
@@ -209,7 +218,7 @@ public class Heap
      */
     public int totalHeapifyCosts()
     {
-        return 46; // should be replaced by student code
+        return this.numHeapify; // should be replaced by student code
     }
     
     
