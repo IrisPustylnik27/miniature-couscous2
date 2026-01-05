@@ -11,6 +11,8 @@ public class Heap
     public final boolean lazyMelds;
     public final boolean lazyDecreaseKeys;
     public HeapItem min;
+    public HeapNode start;
+    public int size;
     
     /**
      *
@@ -21,7 +23,9 @@ public class Heap
     {
         this.lazyMelds = lazyMelds;
         this.lazyDecreaseKeys = lazyDecreaseKeys;
-        // student code can be added here
+        this.min = null;
+        this.start = null;
+        size = 0;
     }
 
     /**
@@ -87,7 +91,48 @@ public class Heap
      */
     public void meld(Heap heap2)
     {
-        return; // should be replaced by student code           
+        if (this.start == null){
+            this.start = heap2.start;
+            this.size = heap2.size;
+            this.min = heap2.min;
+            heap2 = null;
+            return;
+        } else if (heap2.start == null) {
+            return;
+        }
+        this.start.prev.next = heap2.start;
+        HeapNode temp = this.start.prev;
+        this.start.prev = heap2.start.prev;
+        heap2.start.prev.next = this.start;
+        heap2.start.prev = temp;
+        if (!lazyMelds){
+            //successive linking
+        }
+        return;
+    }
+
+    public HeapNode link(HeapNode x, HeapNode y)
+    {
+        if (x.item.compareTo(y.item)>0){
+            change(x, y);
+        }
+        if (x.child == null){
+            y.next = y;
+        } else{
+            y.next = x.child;
+            y.prev = x.prev;
+            x.prev.next = y;
+            x.prev = y;
+        }
+        x.child = y;
+        y.parent = x;
+        return x;
+    }
+
+    public void change(HeapNode x, HeapNode y){
+        HeapItem temp = new HeapItem(x.item.key, x.item.info, x.item.node);
+        x.item = y.item;
+        y.item = temp;
     }
     
     
@@ -168,15 +213,34 @@ public class Heap
         public HeapNode prev;
         public HeapNode parent;
         public int rank;
+
+        public HeapNode(HeapItem item){
+            this.item = item;
+            child = null;
+            next = null;
+            prev = null;
+            parent = null;
+        }
     }
     
     /**
      * Class implementing an item in a Heap.
      *  
      */
-    public static class HeapItem{
+    public static class HeapItem implements Comparable<HeapItem>{
         public HeapNode node;
         public int key;
         public String info;
+
+        public HeapItem(int key, String info, HeapNode node) {
+            this.node = node;
+            this.key = key;
+            this.info = info;
+        }
+
+        @Override
+        public int compareTo(HeapItem y) {
+            return Integer.compare(this.key, y.key);
+        }
     }
 }
