@@ -91,7 +91,33 @@ public class Heap
      */
     public void deleteMin()
     {
-        return; // should be replaced by student code
+        Heap minHeap = new Heap(lazyMelds, lazyDecreaseKeys);
+        minHeap.start = min.node.child;
+        minHeap.start.parent = null;
+        this.deleteFromTheList(new HeapNode(min));
+        HeapNode cnt = minHeap.start;
+        HeapNode newMin = minHeap.start;
+        while(cnt != null){
+            if(newMin.item.compareTo(cnt.item)>0){
+                newMin = cnt;
+            }
+            cnt = cnt.next; 
+        }
+        minHeap.min = newMin.item;
+        cnt = this.start;
+        newMin = this.start;
+        while(cnt != null){
+            if(newMin.item.compareTo(cnt.item)>0){
+                newMin = cnt;
+            }
+            cnt = cnt.next; 
+        }
+        this.min = newMin.item;
+        meld(minHeap);
+        if(lazyMelds){
+            successiveLinking();
+        }
+        return; 
     }
 
     /**
