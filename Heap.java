@@ -105,6 +105,9 @@ public class Heap
         this.start.prev = heap2.start.prev;
         heap2.start.prev.next = this.start;
         heap2.start.prev = temp;
+        if (this.min.compareTo(heap2.min)>0){
+            this.min = heap2.min;
+        }
         if (!lazyMelds){
             //successive linking
         }
