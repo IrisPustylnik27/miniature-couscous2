@@ -47,8 +47,28 @@ public class Heap
      *
      */
     public HeapItem insert(int key, String info) 
-    {    
-        return null; // should be replaced by student code
+    {
+        HeapNode node = NewNode(key, info);
+        Heap heap2 = NewHeap(node);
+        meld(heap2);
+        return node.item;
+    }
+
+    public HeapNode NewNode(int key, String info){
+        HeapItem item = new HeapItem(key, info);
+        HeapNode node = new HeapNode(item);
+        item.node = node;
+        return node;
+    }
+
+    public Heap NewHeap(HeapNode node){
+        Heap heap2 = new Heap(lazyMelds, lazyDecreaseKeys);
+        heap2.start = node;
+        node.next = node;
+        node.prev = node;
+        heap2.size += 1;
+        heap2.min = node.item;
+        return heap2;
     }
 
     /**
@@ -58,7 +78,7 @@ public class Heap
      */
     public HeapItem findMin()
     {
-        return null; // should be replaced by student code
+        return this.min; // should be replaced by student code
     }
 
     /**
@@ -150,7 +170,8 @@ public class Heap
     }
 
     public void change(HeapNode x, HeapNode y){
-        HeapItem temp = new HeapItem(x.item.key, x.item.info, x.item.node);
+        HeapItem temp = new HeapItem(x.item.key, x.item.info);
+        temp.node = x.item.node;
         x.item = y.item;
         y.item = temp;
     }
@@ -252,8 +273,8 @@ public class Heap
         public int key;
         public String info;
 
-        public HeapItem(int key, String info, HeapNode node) {
-            this.node = node;
+        public HeapItem(int key, String info) {
+            this.node = null;
             this.key = key;
             this.info = info;
         }
