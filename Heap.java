@@ -10,7 +10,7 @@ public class Heap
 {
     public final boolean lazyMelds;
     public final boolean lazyDecreaseKeys;
-    public HeapNode min;
+    public HeapItem min;
     
     /**
      *
@@ -31,7 +31,7 @@ public class Heap
      * Insert (key,info) into the heap and return the newly generated HeapNode.
      *
      */
-    public HeapNode insert(int key, String info) 
+    public HeapItem insert(int key, String info) 
     {    
         return null; // should be replaced by student code
     }
@@ -41,7 +41,7 @@ public class Heap
      * Return the minimal HeapNode, null if empty.
      *
      */
-    public HeapNode findMin()
+    public HeapItem findMin()
     {
         return null; // should be replaced by student code
     }
@@ -63,7 +63,7 @@ public class Heap
      * Decrease the key of x by diff and fix the heap.
      * 
      */
-    public void decreaseKey(HeapNode x, int diff) 
+    public void decreaseKey(HeapItem x, int diff) 
     {    
         return; // should be replaced by student code
     }
@@ -73,7 +73,7 @@ public class Heap
      * Delete the x from the heap.
      *
      */
-    public void delete(HeapNode x) 
+    public void delete(HeapItem x) 
     {    
         return; // should be replaced by student code
     }
@@ -158,16 +158,25 @@ public class Heap
     
     
     /**
-     * Class implementing a node in a ExtendedFibonacci Heap.
+     * Class implementing a node in a Heap.
      *  
      */
     public static class HeapNode{
-        public int key;
-        public String info;
+        public HeapItem item;
         public HeapNode child;
         public HeapNode next;
         public HeapNode prev;
         public HeapNode parent;
         public int rank;
+    }
+    
+    /**
+     * Class implementing an item in a Heap.
+     *  
+     */
+    public static class HeapItem{
+        public HeapNode node;
+        public int key;
+        public String info;
     }
 }
