@@ -110,7 +110,8 @@ public class Heap
      */
     public void delete(HeapItem x) 
     {    
-        return; // should be replaced by student code
+        decreaseKey(x, Integer.MIN_VALUE);
+        deleteMin();
     }
 
 
