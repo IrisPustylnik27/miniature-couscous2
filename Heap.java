@@ -13,6 +13,7 @@ public class Heap
     public HeapItem min;
     public HeapNode start;
     public int size;
+    public int numTrees;
     
     /**
      *
@@ -26,6 +27,7 @@ public class Heap
         this.min = null;
         this.start = null;
         size = 0;
+        numTrees = 0;
     }
 
     /**
@@ -100,14 +102,20 @@ public class Heap
         } else if (heap2.start == null) {
             return;
         }
+
         this.start.prev.next = heap2.start;
         HeapNode temp = this.start.prev;
         this.start.prev = heap2.start.prev;
         heap2.start.prev.next = this.start;
         heap2.start.prev = temp;
-        if (this.min.compareTo(heap2.min)>0){
+
+        if (this.min.compareTo(heap2.min) > 0){
             this.min = heap2.min;
         }
+
+        this.size += heap2.size();
+        this.numTrees += heap2.numTrees();
+
         if (!lazyMelds){
             //successive linking
         }
@@ -146,7 +154,7 @@ public class Heap
      */
     public int size()
     {
-        return 46; // should be replaced by student code
+        return this.size; // should be replaced by student code
     }
 
 
@@ -157,7 +165,7 @@ public class Heap
      */
     public int numTrees()
     {
-        return 46; // should be replaced by student code
+        return this.numTrees; // should be replaced by student code
     }
     
     
