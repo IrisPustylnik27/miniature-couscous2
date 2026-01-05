@@ -1,3 +1,6 @@
+import java.lang.reflect.Array;
+import java.util.ArrayList;
+
 /**
  * Heap
  *
@@ -110,7 +113,7 @@ public class Heap
      */
     public void delete(HeapItem x) 
     {    
-        decreaseKey(x, Integer.MIN_VALUE);
+        decreaseKey(x, x.key+1);
         deleteMin();
     }
 
@@ -147,9 +150,57 @@ public class Heap
         this.numTrees += heap2.numTrees();
 
         if (!lazyMelds){
-            //successive linking
+            this.successiveLinking();
         }
-        return;
+        heap2 = null;
+    }
+
+    public void successiveLinking(){
+        HeapNode[] degreeTable = new HeapNode[this.numTrees()];
+        HeapNode curr = this.start;
+        do{
+            int cr = curr.rank;
+            while (degreeTable[cr] != null){
+                degreeTable[cr] = link(curr, degreeTable[cr]);
+                degreeTable[cr] = null;
+                cr = curr.rank;
+            }
+            degreeTable[cr] = curr;
+            HeapNode temp = curr.next;
+            this.deleteFromTheList(curr);
+            numTrees -= 1;
+            curr = temp;
+        }while (curr != null);
+
+        for (HeapNode x: degreeTable) {
+            if (x == null) {continue;}
+            if (this.min == null) {
+                min = x.item;
+                this.start = x;
+                numTrees += 1;
+            } else {
+                x.prev = this.start.prev;
+                x.next = this.start;
+                this.start.prev.next = x;
+                this.start.prev = x;
+                if (x.item.compareTo(this.min) < 0) {
+                    this.min = x.item;
+                }
+            }
+        }
+
+    }
+
+    private void deleteFromTheList (HeapNode node){
+        if (node.next == node){
+            this.start = null;
+        } else{
+            node.prev.next = node.next;
+            node.next.prev = node.prev;
+            node.prev = node;
+            node.next = node;
+        }
+        this.min = null;
     }
 
     public HeapNode link(HeapNode x, HeapNode y)
@@ -167,6 +218,8 @@ public class Heap
         }
         x.child = y;
         y.parent = x;
+        this.numLinks += 1;
+        x.rank = Math.max(x.rank, y.rank) + 1;
         return x;
     }
 
@@ -175,6 +228,11 @@ public class Heap
         temp.node = x.item.node;
         x.item = y.item;
         y.item = temp;
+
+        //changing ranks
+        y.rank += x.rank;
+        x.rank = y.rank - x.rank;
+        y.rank -= x.rank;
     }
     
     
