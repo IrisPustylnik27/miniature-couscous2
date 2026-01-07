@@ -129,9 +129,63 @@ public class Heap
      */
     public void decreaseKey(HeapItem x, int diff) 
     {    
-        return; // should be replaced by student code
+        x.node.item.key = x.node.item.key - diff;
+        if(x.node.item.key >= x.node.parent.item.key){
+            return;
+        }
+        else{
+            if(this.lazyDecreaseKeys == true){
+                cascadingCuts(x);
+            }
+            else{
+                heapifyUp(x);
+            }
+        }
+
     }
 
+
+    public void cascadingCuts(HeapItem x)
+    {
+        HeapItem y = x.node.parent.item;
+        cut(x);
+        meld(NewHeap(x.node));
+        if( y.node.parent != null){
+            if (y.node.marked == false){
+                y.node.marked = true;
+            }
+            else{
+                cascadingCuts(y);
+            }
+        }
+    }
+
+
+    public void cut(HeapItem x)
+    {
+        HeapItem y = x.node.parent.item;
+        x.node.parent = null;
+        x.node.marked = false;
+        y.node.rank = y.node.rank - 1;
+        if(x.node.next == x.node){
+            y.node.child = null;
+        }
+        else{
+            y.node.child = x.node.next;
+            x.node.prev.next = x.node.next;
+            x.node.next.prev = x.node.prev;
+        }
+    }
+
+
+    public void heapifyUp(HeapItem x)
+    {
+        while((x.node.parent != null) && (x.key < x.node.parent.item.key)){
+            change(x.node, x.node.parent);
+        }
+    }
+
+    
     /**
      * 
      * Delete the x from the heap.
@@ -340,6 +394,7 @@ public class Heap
         public HeapNode prev;
         public HeapNode parent;
         public int rank;
+        public boolean marked;
 
         public HeapNode(HeapItem item){
             this.item = item;
@@ -347,6 +402,7 @@ public class Heap
             next = null;
             prev = null;
             parent = null;
+            marked = false;
         }
     }
     
