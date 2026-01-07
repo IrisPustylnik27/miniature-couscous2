@@ -91,6 +91,9 @@ public class Heap
      */
     public void deleteMin()
     {
+        if(this.min == null){
+            return;
+        }
         Heap minHeap = new Heap(lazyMelds, lazyDecreaseKeys);
         minHeap.start = min.node.child;
         minHeap.start.parent = null;
@@ -150,7 +153,7 @@ public class Heap
         HeapItem y = x.node.parent.item;
         cut(x);
         meld(NewHeap(x.node));
-        if( y.node.parent != null){
+        if(y.node.parent != null){
             if (y.node.marked == false){
                 y.node.marked = true;
             }
@@ -185,7 +188,7 @@ public class Heap
         }
     }
 
-    
+
     /**
      * 
      * Delete the x from the heap.
