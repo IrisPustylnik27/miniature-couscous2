@@ -4,8 +4,8 @@ import java.util.ArrayList;
 /**
  * Heap
  *
- * An implementation of Fibonacci heap over positive integers 
- * with the possibility of not performing lazy melds and 
+ * An implementation of Fibonacci heap over positive integers
+ * with the possibility of not performing lazy melds and
  * the possibility of not performing lazy decrease keys.
  *
  */
@@ -22,7 +22,7 @@ public class Heap
     private int numCuts;
     private int numMarkedNodes;
     private int numHeapify;
-    
+
     /**
      *
      * Constructor to initialize an empty heap.
@@ -43,13 +43,13 @@ public class Heap
     }
 
     /**
-     * 
+     *
      * pre: key > 0
      *
      * Insert (key,info) into the heap and return the newly generated HeapNode.
      *
      */
-    public HeapItem insert(int key, String info) 
+    public HeapItem insert(int key, String info)
     {
         HeapNode node = NewNode(key, info);
         Heap heap2 = NewHeap(node);
@@ -69,14 +69,15 @@ public class Heap
         heap2.start = node;
         node.next = node;
         node.prev = node;
-        heap2.size += 1;
+        heap2.size++;
+        heap2.numTrees++;
         heap2.min = node.item;
         return heap2;
     }
 
     /**
-     * 
-     * Return the minimal HeapNode, null if empty.
+     *
+     * Return the minimal HeapItem, null if empty.
      *
      */
     public HeapItem findMin()
@@ -85,99 +86,182 @@ public class Heap
     }
 
     /**
-     * 
+     *
      * Delete the minimal item.
      *
      */
-    public void deleteMin()
-    {
-        if(this.min == null){
+    public void deleteMin() {
+        if (this.min == null) {
             return;
         }
-        Heap minHeap = new Heap(lazyMelds, lazyDecreaseKeys);
-        minHeap.start = min.node.child;
-        minHeap.start.parent = null;
-        this.deleteFromTheList(new HeapNode(min));
-        HeapNode cnt = minHeap.start;
-        HeapNode newMin = minHeap.start;
-        while(cnt != null){
-            if(newMin.item.compareTo(cnt.item)>0){
-                newMin = cnt;
-            }
-            cnt = cnt.next; 
+
+        boolean fl = min.node.child == null;
+
+        Heap minHeap = null;
+        if (!fl) {
+            minHeap = new Heap(lazyMelds, lazyDecreaseKeys);
+            minHeap.start = min.node.child;
+            minHeap.updatingParent(minHeap.start, null);
+
         }
-        minHeap.min = newMin.item;
-        cnt = this.start;
-        newMin = this.start;
-        while(cnt != null){
-            if(newMin.item.compareTo(cnt.item)>0){
-                newMin = cnt;
-            }
-            cnt = cnt.next; 
+
+        this.removeFromTheRootList(min.node);
+        this.size--;
+        this.numTrees--;
+        this.searchingMin();
+
+        if (fl) {
+            successiveLinking();
+            return;
         }
-        this.min = newMin.item;
+
+        minHeap.updatingNumberOfTrees();
+        minHeap.searchingMin();
+
         meld(minHeap);
-        if(lazyMelds){
+        if (lazyMelds) {
             successiveLinking();
         }
-        return; 
+
+        this.updatingMarking(this.start);
+    }
+
+    public void searchingMin(){
+        if (this.start == null) {
+            this.min = null;
+            return;
+        }
+        HeapNode newMin = this.start;
+        HeapNode stopper = this.start;
+        HeapNode cnt = this.start;
+        do{
+            if (newMin.item.compareTo(cnt.item) > 0){
+                newMin = cnt;
+            }
+            cnt = cnt.next;
+        }while(cnt != stopper);
+        this.min = newMin.item;
+    }
+
+    public void updatingNumberOfTrees(){
+        if (this.start == null){
+            this.numTrees = 0;
+            return;
+        }
+        HeapNode stopper = this.start;
+        HeapNode cnt = this.start;
+        int newNumTree = 0;
+        do{
+            newNumTree++;
+            cnt = cnt.next;
+        }while(cnt != stopper);
+        this.numTrees = newNumTree;
+    }
+
+    public void updatingMarking(HeapNode node){
+        if (node == null) {
+            return;
+        }
+        HeapNode cnt = node;
+        do{
+            if (cnt.marked) {
+                this.numMarkedNodes--;
+                cnt.marked = false;
+            }
+            cnt = cnt.next;
+        }while(cnt != node);
+    }
+
+    public void updatingParent(HeapNode node, HeapNode newParent){
+        if (node == null) {
+            return;
+        }
+        HeapNode cnt = node;
+        do{
+            cnt.parent = newParent;
+            cnt = cnt.next;
+        }while(cnt != node);
     }
 
     /**
-     * 
+     *
      * pre: 0<=diff<=x.key
-     * 
+     *
      * Decrease the key of x by diff and fix the heap.
-     * 
+     *
      */
-    public void decreaseKey(HeapItem x, int diff) 
-    {    
-        x.node.item.key = x.node.item.key - diff;
-        if(x.node.item.key >= x.node.parent.item.key){
+    public void decreaseKey(HeapItem x, int diff)
+    {
+        x.key = x.key - diff;
+        if (x.node.parent == null) {
+            if (x.compareTo(this.min) < 0) {
+                this.min = x;
+            }
             return;
         }
-        else{
-            if(this.lazyDecreaseKeys == true){
-                cascadingCuts(x);
-            }
-            else{
-                heapifyUp(x);
-            }
+        if (x.key >= x.node.parent.item.key){
+            return;
+        }
+        if (!this.lazyDecreaseKeys) {
+            heapifyUp(x);
+        } else {
+            cascadingCuts(x);
+        }
+
+        if (this.min == null || x.compareTo(this.min) < 0) {
+            this.min = x;
         }
 
     }
 
 
-    public void cascadingCuts(HeapItem x)
+    public void cascadingCuts(HeapItem currItem)
     {
-        HeapItem y = x.node.parent.item;
-        cut(x);
-        meld(NewHeap(x.node));
-        if(y.node.parent != null){
-            if (y.node.marked == false){
-                y.node.marked = true;
+        if (currItem.node.parent == null) {
+            return;
+        }
+        HeapItem parentItem = currItem.node.parent.item;
+        cut(currItem);
+        Heap heap2 = NewHeap(currItem.node);
+        heap2.size = 0;
+        meld(heap2);
+        if(parentItem.node.parent != null){
+            if (!parentItem.node.marked){
+                parentItem.node.marked = true;
+                numMarkedNodes++;
             }
             else{
-                cascadingCuts(y);
+                cascadingCuts(parentItem);
             }
         }
     }
 
 
-    public void cut(HeapItem x)
+    public void cut(HeapItem currItem)
     {
-        HeapItem y = x.node.parent.item;
-        x.node.parent = null;
-        x.node.marked = false;
-        y.node.rank = y.node.rank - 1;
-        if(x.node.next == x.node){
-            y.node.child = null;
+        if (currItem.node.parent == null) {
+            return;
         }
-        else{
-            y.node.child = x.node.next;
-            x.node.prev.next = x.node.next;
-            x.node.next.prev = x.node.prev;
+
+        HeapItem parentItem = currItem.node.parent.item;
+
+        if (currItem.node.marked){
+            numMarkedNodes--;
         }
+        currItem.node.marked = false;
+        this.removeChild(parentItem.node, currItem.node);
+        numCuts++;
+    }
+
+    public void removeChild(HeapNode parent, HeapNode node) {
+        if (node.next == node) {
+            parent.child = null;
+        } else {
+            if (parent.child == node) parent.child = node.next;
+            removeFromTheCircularList(node);
+        }
+        node.parent = null;
+        parent.rank--;
     }
 
 
@@ -185,24 +269,25 @@ public class Heap
     {
         while((x.node.parent != null) && (x.key < x.node.parent.item.key)){
             change(x.node, x.node.parent);
+            numHeapify++;
         }
     }
 
 
     /**
-     * 
+     *
      * Delete the x from the heap.
      *
      */
-    public void delete(HeapItem x) 
-    {    
+    public void delete(HeapItem x)
+    {
         decreaseKey(x, x.key+1);
         deleteMin();
     }
 
 
     /**
-     * 
+     *
      * Meld the heap with heap2
      * pre: heap2.lazyMelds = this.lazyMelds AND heap2.lazyDecreaseKeys = this.lazyDecreaseKeys
      *
@@ -211,11 +296,14 @@ public class Heap
     {
         if (this.start == null){
             this.start = heap2.start;
-            this.size = heap2.size;
+            this.size += heap2.size;
             this.min = heap2.min;
+            this.numTrees = heap2.numTrees;
+            this.numMarkedNodes += heap2.numMarkedNodes;
+            //do we need to upgrade cuts, links and heapyfy?
             heap2 = null;
             return;
-        } else if (heap2.start == null) {
+        } else if (heap2.start == null){
             return;
         }
 
@@ -231,6 +319,7 @@ public class Heap
 
         this.size += heap2.size();
         this.numTrees += heap2.numTrees();
+        this.numMarkedNodes += heap2.numMarkedNodes();
 
         if (!lazyMelds){
             this.successiveLinking();
@@ -239,29 +328,44 @@ public class Heap
     }
 
     public void successiveLinking(){
-        HeapNode[] degreeTable = new HeapNode[this.numTrees()];
-        HeapNode curr = this.start;
-
+        if (this.start == null) return;
+        ArrayList<HeapNode> nodes = new ArrayList<>(this.numTrees);
+        HeapNode stopper = this.start;
+        HeapNode cnt = this.start;
         do{
-            int cr = curr.rank;
+            nodes.add(cnt);
+            cnt = cnt.next;
+        }while(cnt != stopper);
+
+        for(HeapNode node: nodes){
+            node.next = node;
+            node.prev = node;
+            node.parent = null;
+        }
+
+        int n = this.size();
+        int len = (n <= 1) ? 10:(int) Math.ceil(Math.log(n)/Math.log(2))+10;
+        HeapNode[] degreeTable = new HeapNode[len];
+
+        for(HeapNode node: nodes){
+            int cr = node.rank;
             while (degreeTable[cr] != null){
-                degreeTable[cr] = link(curr, degreeTable[cr]);
+                node = link(node, degreeTable[cr]);
                 degreeTable[cr] = null;
-                cr = curr.rank;
+                cr = node.rank;
             }
-            degreeTable[cr] = curr;
-            HeapNode temp = curr.next;
-            this.deleteFromTheList(curr);
-            numTrees -= 1;
-            curr = temp;
-        }while (curr != null);
+            degreeTable[cr] = node;
+        }
+
+        this.start = null;
+        this.min = null;
+        this.numTrees = 0;
 
         for (HeapNode x: degreeTable) {
             if (x == null) {continue;}
             if (this.min == null) {
                 min = x.item;
                 this.start = x;
-                numTrees += 1;
             } else {
                 x.prev = this.start.prev;
                 x.next = this.start;
@@ -271,59 +375,74 @@ public class Heap
                     this.min = x.item;
                 }
             }
+            this.numTrees++;
         }
 
     }
 
-    private void deleteFromTheList (HeapNode node){
-        if (node.next == node){
+    public void removeFromTheRootList(HeapNode node){
+        if (node == null) return;
+        if (node.next == node) {
             this.start = null;
-        } else{
-            node.prev.next = node.next;
-            node.next.prev = node.prev;
-            node.prev = node;
-            node.next = node;
+        }else{
+            if (node == this.start) this.start = node.next;
+            removeFromTheCircularList(node);
         }
-        this.min = null;
     }
+
+    public void removeFromTheCircularList(HeapNode node){
+        if (node == null) {
+            return;
+        }
+        node.prev.next = node.next;
+        node.next.prev = node.prev;
+        node.prev = node;
+        node.next = node;
+    }
+
 
     public HeapNode link(HeapNode x, HeapNode y)
     {
         if (x.item.compareTo(y.item)>0){
-            change(x, y);
+            HeapNode temp = x;
+            x = y;
+            y = temp;
         }
         if (x.child == null){
             y.next = y;
+            y.prev = y;
         } else{
             y.next = x.child;
-            y.prev = x.prev;
-            x.prev.next = y;
-            x.prev = y;
+            y.prev = x.child.prev;
+            x.child.prev.next = y;
+            x.child.prev = y;
         }
         x.child = y;
         y.parent = x;
-        this.numLinks += 1;
-        x.rank = Math.max(x.rank, y.rank) + 1;
+        this.numLinks++;
+        x.rank++;
+        if (y.marked){
+            numMarkedNodes--;
+        }
+        y.marked = false;
         return x;
     }
 
     public void change(HeapNode x, HeapNode y){
-        HeapItem temp = new HeapItem(x.item.key, x.item.info);
-        temp.node = x.item.node;
+        HeapItem temp = x.item;
         x.item = y.item;
         y.item = temp;
 
-        //changing ranks
-        y.rank += x.rank;
-        x.rank = y.rank - x.rank;
-        y.rank -= x.rank;
+        y.item.node = y;
+        x.item.node = x;
+
     }
-    
-    
+
+
     /**
-     * 
+     *
      * Return the number of elements in the heap
-     *   
+     *
      */
     public int size()
     {
@@ -332,63 +451,63 @@ public class Heap
 
 
     /**
-     * 
+     *
      * Return the number of trees in the heap.
-     * 
+     *
      */
     public int numTrees()
     {
         return this.numTrees; // should be replaced by student code
     }
-    
-    
+
+
     /**
-     * 
+     *
      * Return the number of marked nodes in the heap.
-     * 
+     *
      */
     public int numMarkedNodes()
     {
         return this.numMarkedNodes; // should be replaced by student code
     }
-    
-    
+
+
     /**
-     * 
+     *
      * Return the total number of links.
-     * 
+     *
      */
     public int totalLinks()
     {
         return this.numLinks; // should be replaced by student code
     }
-    
-    
+
+
     /**
-     * 
+     *
      * Return the total number of cuts.
-     * 
+     *
      */
     public int totalCuts()
     {
         return this.numCuts; // should be replaced by student code
     }
-    
+
 
     /**
-     * 
+     *
      * Return the total heapify costs.
-     * 
+     *
      */
     public int totalHeapifyCosts()
     {
         return this.numHeapify; // should be replaced by student code
     }
-    
-    
+
+
     /**
      * Class implementing a node in a Heap.
-     *  
+     *
      */
     public static class HeapNode{
         public HeapItem item;
@@ -408,10 +527,10 @@ public class Heap
             marked = false;
         }
     }
-    
+
     /**
      * Class implementing an item in a Heap.
-     *  
+     *
      */
     public static class HeapItem implements Comparable<HeapItem>{
         public HeapNode node;
