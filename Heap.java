@@ -48,6 +48,8 @@ public class Heap
      *
      * Insert (key,info) into the heap and return the newly generated HeapNode.
      *
+     * O(1) if lazyMeld is true and O(logn) if false.
+     *
      */
     public HeapItem insert(int key, String info)
     {
@@ -57,12 +59,28 @@ public class Heap
         return node.item;
     }
 
+    /**
+     *
+     * Build new node.
+     *
+     * O(1).
+     *
+     */
+
     public HeapNode NewNode(int key, String info){
         HeapItem item = new HeapItem(key, info);
         HeapNode node = new HeapNode(item);
         item.node = node;
         return node;
     }
+
+    /**
+     *
+     * Build new heap from node.
+     *
+     * O(1).
+     *
+     */
 
     public Heap NewHeap(HeapNode node){
         Heap heap2 = new Heap(lazyMelds, lazyDecreaseKeys);
@@ -79,6 +97,8 @@ public class Heap
      *
      * Return the minimal HeapItem, null if empty.
      *
+     * O(1).
+     *
      */
     public HeapItem findMin()
     {
@@ -88,6 +108,8 @@ public class Heap
     /**
      *
      * Delete the minimal item.
+     *
+     * O(logn).
      *
      */
     public void deleteMin() {
@@ -108,15 +130,14 @@ public class Heap
         this.removeFromTheRootList(min.node);
         this.size--;
         this.numTrees--;
-        this.searchingMin();
 
         if (fl) {
             successiveLinking();
             return;
         }
 
-        minHeap.updatingNumberOfTrees();
-        minHeap.searchingMin();
+        minHeap.successiveLinking();
+
 
         meld(minHeap);
         if (lazyMelds) {
@@ -126,37 +147,14 @@ public class Heap
         this.updatingMarking(this.start);
     }
 
-    public void searchingMin(){
-        if (this.start == null) {
-            this.min = null;
-            return;
-        }
-        HeapNode newMin = this.start;
-        HeapNode stopper = this.start;
-        HeapNode cnt = this.start;
-        do{
-            if (newMin.item.compareTo(cnt.item) > 0){
-                newMin = cnt;
-            }
-            cnt = cnt.next;
-        }while(cnt != stopper);
-        this.min = newMin.item;
-    }
 
-    public void updatingNumberOfTrees(){
-        if (this.start == null){
-            this.numTrees = 0;
-            return;
-        }
-        HeapNode stopper = this.start;
-        HeapNode cnt = this.start;
-        int newNumTree = 0;
-        do{
-            newNumTree++;
-            cnt = cnt.next;
-        }while(cnt != stopper);
-        this.numTrees = newNumTree;
-    }
+    /**
+     *
+     * Update marking in root list.
+     *
+     * O(k) when k is number of items in the list.
+     *
+     */
 
     public void updatingMarking(HeapNode node){
         if (node == null) {
@@ -171,6 +169,14 @@ public class Heap
             cnt = cnt.next;
         }while(cnt != node);
     }
+
+    /**
+     *
+     * Update parent in list.
+     *
+     * O(k) when k is number of items in the list.
+     *
+     */
 
     public void updatingParent(HeapNode node, HeapNode newParent){
         if (node == null) {
@@ -188,6 +194,8 @@ public class Heap
      * pre: 0<=diff<=x.key
      *
      * Decrease the key of x by diff and fix the heap.
+     *
+     * O(logn), if lazyMelds = false and lazyDecreaseKeys = true then O((logn)^2).
      *
      */
     public void decreaseKey(HeapItem x, int diff)
@@ -214,6 +222,14 @@ public class Heap
 
     }
 
+    /**
+     *
+     * Cuts till we find not marked item.
+     *
+     * O(logn), if lazyMeld = false then O((logn)^2).
+     *
+     */
+
 
     public void cascadingCuts(HeapItem currItem)
     {
@@ -236,6 +252,14 @@ public class Heap
         }
     }
 
+    /**
+     *
+     * Cutting subtree from the parent.
+     *
+     * O(1).
+     *
+     */
+
 
     public void cut(HeapItem currItem)
     {
@@ -253,6 +277,14 @@ public class Heap
         numCuts++;
     }
 
+    /**
+     *
+     * Remove one of the children from given parent.
+     *
+     * O(1).
+     *
+     */
+
     public void removeChild(HeapNode parent, HeapNode node) {
         if (node.next == node) {
             parent.child = null;
@@ -263,6 +295,14 @@ public class Heap
         node.parent = null;
         parent.rank--;
     }
+
+    /**
+     *
+     * Changing items of parent and child till tree is right.
+     *
+     * O(logn).
+     *
+     */
 
 
     public void heapifyUp(HeapItem x)
@@ -278,6 +318,8 @@ public class Heap
      *
      * Delete the x from the heap.
      *
+     * O(logn).
+     *
      */
     public void delete(HeapItem x)
     {
@@ -290,6 +332,8 @@ public class Heap
      *
      * Meld the heap with heap2
      * pre: heap2.lazyMelds = this.lazyMelds AND heap2.lazyDecreaseKeys = this.lazyDecreaseKeys
+     *
+     * O(1) if lazyMeld is true, O(logn) if false.
      *
      */
     public void meld(Heap heap2)
@@ -326,6 +370,14 @@ public class Heap
         }
         heap2 = null;
     }
+
+    /**
+     *
+     * Linking trees with the same rank.
+     *
+     * O(logn).
+     *
+     */
 
     public void successiveLinking(){
         if (this.start == null) return;
@@ -380,6 +432,14 @@ public class Heap
 
     }
 
+    /**
+     *
+     * Removing item from the root list.
+     *
+     * O(1).
+     *
+     */
+
     public void removeFromTheRootList(HeapNode node){
         if (node == null) return;
         if (node.next == node) {
@@ -390,6 +450,14 @@ public class Heap
         }
     }
 
+    /**
+     *
+     * Removing item from the list.
+     *
+     * O(1).
+     *
+     */
+
     public void removeFromTheCircularList(HeapNode node){
         if (node == null) {
             return;
@@ -399,6 +467,14 @@ public class Heap
         node.prev = node;
         node.next = node;
     }
+
+    /**
+     *
+     * Linking two trees together.
+     *
+     * O(1).
+     *
+     */
 
 
     public HeapNode link(HeapNode x, HeapNode y)
@@ -428,6 +504,14 @@ public class Heap
         return x;
     }
 
+    /**
+     *
+     * Changing items of two given nodes.
+     *
+     * O(1).
+     *
+     */
+
     public void change(HeapNode x, HeapNode y){
         HeapItem temp = x.item;
         x.item = y.item;
@@ -441,7 +525,9 @@ public class Heap
 
     /**
      *
-     * Return the number of elements in the heap
+     * Return the number of elements in the heap.
+     *
+     * O(1).
      *
      */
     public int size()
@@ -454,6 +540,8 @@ public class Heap
      *
      * Return the number of trees in the heap.
      *
+     * O(1).
+     *
      */
     public int numTrees()
     {
@@ -464,6 +552,8 @@ public class Heap
     /**
      *
      * Return the number of marked nodes in the heap.
+     *
+     * O(1).
      *
      */
     public int numMarkedNodes()
@@ -476,6 +566,8 @@ public class Heap
      *
      * Return the total number of links.
      *
+     * O(1).
+     *
      */
     public int totalLinks()
     {
@@ -486,6 +578,8 @@ public class Heap
     /**
      *
      * Return the total number of cuts.
+     *
+     * O(1).
      *
      */
     public int totalCuts()
@@ -498,6 +592,8 @@ public class Heap
      *
      * Return the total heapify costs.
      *
+     * O(1).
+     *
      */
     public int totalHeapifyCosts()
     {
@@ -507,6 +603,7 @@ public class Heap
 
     /**
      * Class implementing a node in a Heap.
+     *
      *
      */
     public static class HeapNode{
