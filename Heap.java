@@ -131,13 +131,13 @@ public class Heap
         this.size--;
         this.numTrees--;
 
+        successiveLinking();
+
         if (fl) {
-            successiveLinking();
             return;
         }
 
         minHeap.successiveLinking();
-
 
         meld(minHeap);
         if (lazyMelds) {
